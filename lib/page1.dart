@@ -8,9 +8,16 @@ class TabBar1 extends StatefulWidget {
 }
 
 class _TabBar1State extends State<TabBar1> with SingleTickerProviderStateMixin {
+
   bool isAccepted = false;
   TabController tabController;
-  int bnbIndex = 0;
+  int bnbIndex = 0 ;
+
+  defineTaskStatus(Task task , bool val){
+    int index = tasks.indexOf(task) ;
+    tasks[index].isComplete = val ;
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -45,36 +52,36 @@ class _TabBar1State extends State<TabBar1> with SingleTickerProviderStateMixin {
       ),
       body: TabBarView(controller: tabController, children: [
         Column(
-          children: tasks.map((e) => TodoWidget(e)).toList(),
+          children: tasks.map((e) => TodoWidget(e , defineTaskStatus)).toList(),
         ),
         Column(
           children: tasks
               .where((element) => element.isComplete == true)
-              .map((e) => TodoWidget(e))
+              .map((e) => TodoWidget(e , defineTaskStatus))
               .toList(),
         ),
         Column(
           children: tasks
               .where((element) => !element.isComplete)
-              .map((e) => TodoWidget(e))
+              .map((e) => TodoWidget(e , defineTaskStatus))
               .toList(),
         )
       ]),
-      bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          currentIndex: tabController.index,
-          onTap: (value) {
-            tabController.animateTo(value);
-            setState(() {});
-          },
-          items: [
-            BottomNavigationBarItem(
-                title: Text('AllTasks'), icon: Icon(Icons.menu)),
-            BottomNavigationBarItem(
-                title: Text('CompleteTasks'), icon: Icon(Icons.done)),
-            BottomNavigationBarItem(
-                title: Text('InComplete tasks'), icon: Icon(Icons.close)),
-          ]),
+      // bottomNavigationBar: BottomNavigationBar(
+      //     type: BottomNavigationBarType.fixed,
+      //     currentIndex: tabController.index,
+      //     onTap: (value) {
+      //       tabController.animateTo(value);
+      //       setState(() {});
+      //     },
+      //     items: [
+      //       BottomNavigationBarItem(
+      //           title: Text('AllTasks'), icon: Icon(Icons.menu)),
+      //       BottomNavigationBarItem(
+      //           title: Text('CompleteTasks'), icon: Icon(Icons.done)),
+      //       BottomNavigationBarItem(
+      //           title: Text('InComplete tasks'), icon: Icon(Icons.close)),
+      //     ]),
     );
   }
 }
@@ -83,7 +90,7 @@ class TodoWidget extends StatefulWidget {
 
   Task task;
   Function fun;
-  TodoWidget(this.task, {this.fun});
+  TodoWidget(this.task, this.fun);
 
   @override
   _TodoWidgetState createState() => _TodoWidgetState();
@@ -102,6 +109,7 @@ class _TodoWidgetState extends State<TodoWidget> {
               value: widget.task.isComplete,
               onChanged: (value) {
                 widget.task.isComplete = value;
+                widget.fun(widget.task , value) ;
                 setState(() {});
               })
         ],
