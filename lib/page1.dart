@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/shared_uis/custom_drawer.dart';
 import 'package:flutter_app/task_mock.dart';
 import 'models/task.dart';
 
@@ -19,6 +20,17 @@ class _TabBar1State extends State<TabBar1> with SingleTickerProviderStateMixin {
     setState(() {});
   }
 
+  deleteTask(Task task){
+    tasks.remove(task) ;
+    setState(() {
+    });
+  }
+
+  navigateFun(int val){
+    tabController.animateTo(val) ;
+    Navigator.pop(context);
+  }
+  
   @override
   void initState() {
     // TODO: implement initState
@@ -29,6 +41,11 @@ class _TabBar1State extends State<TabBar1> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: customDrawer(
+        fun1: navigateFun(0),
+        fun2: navigateFun(1),
+        fun3: navigateFun(2),
+      ),
       appBar: AppBar(
         actions: [
           IconButton(
@@ -51,37 +68,25 @@ class _TabBar1State extends State<TabBar1> with SingleTickerProviderStateMixin {
         ]),
       ),
       body: TabBarView(controller: tabController, children: [
-        Column(
-          children: tasks.map((e) => TodoWidget(e , defineTaskStatus)).toList(),
+        ListView.builder(
+          itemCount: tasks.length,
+          itemBuilder: (context , index){
+            return TodoWidget(tasks[index] , defineTaskStatus , deleteTask);
+          },
         ),
         Column(
           children: tasks
               .where((element) => element.isComplete == true)
-              .map((e) => TodoWidget(e , defineTaskStatus))
+              .map((e) => TodoWidget(e , defineTaskStatus , deleteTask))
               .toList(),
         ),
         Column(
           children: tasks
               .where((element) => !element.isComplete)
-              .map((e) => TodoWidget(e , defineTaskStatus))
+              .map((e) => TodoWidget(e , defineTaskStatus , deleteTask))
               .toList(),
         )
       ]),
-      // bottomNavigationBar: BottomNavigationBar(
-      //     type: BottomNavigationBarType.fixed,
-      //     currentIndex: tabController.index,
-      //     onTap: (value) {
-      //       tabController.animateTo(value);
-      //       setState(() {});
-      //     },
-      //     items: [
-      //       BottomNavigationBarItem(
-      //           title: Text('AllTasks'), icon: Icon(Icons.menu)),
-      //       BottomNavigationBarItem(
-      //           title: Text('CompleteTasks'), icon: Icon(Icons.done)),
-      //       BottomNavigationBarItem(
-      //           title: Text('InComplete tasks'), icon: Icon(Icons.close)),
-      //     ]),
     );
   }
 }
@@ -90,7 +95,35 @@ class TodoWidget extends StatefulWidget {
 
   Task task;
   Function fun;
-  TodoWidget(this.task, this.fun);
+  Function removeTask ;
+  TodoWidget(this.task, this.fun , this.removeTask);
+
+  showMyDialog(BuildContext context){
+    showDialog(
+      context: context ,
+      builder: (context){
+        return AlertDialog(
+          title: Text('Alert'),
+          content: Text('Are You Sure ?'),
+          actions: [
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: (){
+                removeTask(task);
+                Navigator.pop(context);
+              },
+            ),
+            FlatButton(
+              child: Text('No'),
+              onPressed: (){
+                Navigator.pop(context) ;
+              },
+            ),
+          ],
+        );
+      }
+    );
+  }
 
   @override
   _TodoWidgetState createState() => _TodoWidgetState();
@@ -104,6 +137,12 @@ class _TodoWidgetState extends State<TodoWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: (){
+              widget.showMyDialog(context) ;
+            },
+          ),
           Text(widget.task.taskName),
           Checkbox(
               value: widget.task.isComplete,
